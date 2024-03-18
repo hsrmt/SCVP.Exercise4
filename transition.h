@@ -7,24 +7,33 @@
 
 // Transition:
 // TODO
+template<unsigned int N = 1, unsigned int M = 1>
 SC_MODULE(transition){
-    sc_port<placeInterface> in;
-    sc_port<placeInterface> out;
+    sc_port<placeInterface, N, SC_ALL_BOUND> in;
+    sc_port<placeInterface, M, SC_ALL_BOUND> out;
 
     SC_CTOR(transition){}
 
     void fire(){
-        if (in->testTokens() > 0) {
-            // Transition fires
-            in->removeTokens(1); // Remove one token from the input place
-            out->addTokens(1); // Add one token to the output place
-            std::cout << this->name() << ": Fired" << std::endl;
-        } else if(in->testTokens() == 0) {
-            // Transition does not fire due to lack of tokens
-            std::cout << this->name() << ": NOT Fired" << std::endl;
+        for(int i = 0; i < N; ++i) {
+            if (in[i]->testTokens() == 0) {
+                std::cout <<this->name() << ": NOT Fired " << std::endl;
+                return; // If any input port does not have a token, do not fire
+            }
         }
-    }
 
+        // If all input ports have tokens, fire the transition
+        for(int i = 0; i < N; ++i) {
+            in[i]->removeTokens(1); // Consume one token from each input port
+        }
+        for(int i = 0; i < M; ++i) {
+            out[i]->addTokens(1); // Produce one token on each output port
+        }
+
+        // Announce that the transition has fired
+        std::cout << this->name() << ": Fired" << std::endl;
+    
+    }
 };
 
 #endif // TRANSITION_H
