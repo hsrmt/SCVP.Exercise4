@@ -11,15 +11,8 @@ SC_MODULE(toplevel) {
     // transition<1, 2> t1; 
     // transition<2, 1> t2{"t2"}; 
     // transition<1, 1> t3{"t3"}; // t3 has one input and one output
-    place<1,1> IDLE;  // Initially, the bank is in the IDLE state
-    place<1,1> ACTIVE;  // Initially, no operation is ACTIVE
-
-    // Define transitions for each operation in the memory bank
-    transition<1, 1> ACT{"ACT"};
-    transition<1, 1> RD{"RD"};
-    transition<1, 1> WR{"WR"};
-    transition<1, 1> PRE{"PRE"};
-    SC_CTOR(toplevel) : IDLE(1), ACTIVE(0)
+    subnet s1, s2;
+    SC_CTOR(toplevel) : s1("s1"),s2("s2")
     {
         // Bind the ports of the transitions to the places
         // act.in.bind(p1);
@@ -30,20 +23,7 @@ SC_MODULE(toplevel) {
         // t2.out.bind(p1);
         // t3.in.bind(p3);
         // t3.out.bind(p4);   
-        ACT.in.bind(IDLE);  // ACT is enabled when the bank is IDLE
-        ACT.out.bind(ACTIVE);  // ACT moves the bank to ACTIVE state
-
-        // RD transition
-        RD.in.bind(ACTIVE);  // RD is enabled when the bank is ACTIVE
-        RD.out.bind(ACTIVE);  // RD keeps the bank in ACTIVE state
-
-        // WR transition
-        WR.in.bind(ACTIVE);  // WR is enabled when the bank is ACTIVE
-        WR.out.bind(ACTIVE);  // WR keeps the bank in ACTIVE state
-
-        // PRE transition
-        PRE.in.bind(ACTIVE);  // PRE is enabled when the bank is ACTIVE
-        PRE.out.bind(IDLE);  // PRE moves the bank back to IDLE state
+        
 
 
 
@@ -54,18 +34,27 @@ SC_MODULE(toplevel) {
     void process() {
         while (true) {
             wait(10, SC_NS);
-            ACT.fire();
+            s1.ACT.fire();  // Activate s1
             wait(10, SC_NS);
-            ACT.fire();
+            s1.ACT.fire();  // Activate s1
             wait(10, SC_NS);
-            RD.fire();
+            s1.RD.fire();   // Read operation in s1
             wait(10, SC_NS);
-            WR.fire();
+            s1.WR.fire();   // Write operation in s1
             wait(10, SC_NS);
-            PRE.fire();
+            s1.PRE.fire();  // Precharge s1, moving it back to IDLE
             wait(10, SC_NS);
-            ACT.fire();
-            sc_stop(); 
+            s1.ACT.fire();  // Similarly, activate s2
+            wait(10, SC_NS);
+            s2.ACT.fire();  // Similarly, activate s2
+            wait(10, SC_NS);
+            s2.ACT.fire();  // Similarly, activate s2
+            wait(10, SC_NS);
+            s2.PRE.fire();  // Precharge s1, moving it back to IDLE
+            wait(10, SC_NS);
+            s2.PRE.fire();  // Precharge s1, moving it back to IDLE
+            wait(10, SC_NS);
+            sc_stop();  // Stop the s
         }
     }
 };

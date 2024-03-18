@@ -17,13 +17,13 @@ SC_MODULE(transition){
 
     void fire(){
         for (int i = 0; i < L; ++i) {
-            if (inhibitors[i]->testTokens() != 0) {
+            if (inhibitors[i]->testTokens() > 0) {
                 std::cout << this->name() << ": NOT Fired (Inhibited)" << std::endl;
                 return;  // Inhibited by the presence of tokens in an inhibitor place
             }
         }
         for (int i = 0; i < N; ++i) {
-            if (!in[i]->testTokens()) {
+            if (!in[i]->testTokens()<=0) {
                 std::cout << this->name() << ": NOT Fired" << std::endl;
                 return; // Do not fire if any input port does not have enough tokens
             }
